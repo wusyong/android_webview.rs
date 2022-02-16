@@ -20,18 +20,15 @@ fn init_logging() {
 }
 
 #[mobile_entry_point]
-fn main() -> Result<(), Box<dyn std::error::Error>>{
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     init_logging();
     let event_loop = EventLoop::new();
 
-    let window = WindowBuilder::new()
-        .with_title("A fantastic window!")
-        .with_inner_size(tao::dpi::LogicalSize::new(128.0, 128.0))
-        .build(&event_loop)
-        .unwrap();
-
-    let looper =
-        ndk::looper::ThreadLooper::prepare();
+    // let window = WindowBuilder::new()
+    //     .with_title("A fantastic window!")
+    //     .with_inner_size(tao::dpi::LogicalSize::new(128.0, 128.0))
+    //     .build(&event_loop)
+    //     .unwrap();
 
     // Create a VM for executing Java calls
     let native_activity = ndk_glue::native_activity();
@@ -39,23 +36,40 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
     let vm = unsafe { jni::JavaVM::from_raw(vm_ptr) }?;
     let env = vm.attach_current_thread()?;
 
-    let class = env.find_class("android/webkit/WebView")?;
-    let webview = env.new_object(class, "(Landroid/content/Context;)V", &[native_activity.activity().into()])?;
+    let class = env.find_class("android/content/Intent")?;
+    let activity = env.find_class("com/example/w/MainActivity")?;
+    // let intent = env.new_object(class, "(Landroid/content/Context;jclass)V", &[native_activity.activity().into(), activity.into()])?;
+    // let x = env.call_method(native_activity.activity(), "startActivity", "(Landroid/content/Intent;)V", &[intent.into()])?;
+    Ok(())
 
+    // event_loop.run(move |event, _, control_flow| {
+    //     *control_flow = ControlFlow::Wait;
+    //     println!("{:?}", event);
+    //
+    //     match event {
+    //         Event::WindowEvent {
+    //             event: WindowEvent::CloseRequested,
+    //             window_id,
+    //             ..
+    //         } if window_id == window.id() => *control_flow = ControlFlow::Exit,
+    //         Event::MainEventsCleared => {
+    //             window.request_redraw();
+    //         }
+    //         _ => (),
+    //     }
+    // });
+}
 
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Wait;
-        println!("{:?}", event);
+use jni::objects::{JClass, JString, JObject};
+use jni::sys::jstring;
+use jni::JNIEnv;
 
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                window_id,
-            } if window_id == window.id() => *control_flow = ControlFlow::Exit,
-            Event::MainEventsCleared => {
-                window.request_redraw();
-            }
-            _ => (),
-        }
-    });
+#[no_mangle]
+pub unsafe extern "C" fn Java_com_example_w_MainActivity_create(
+    env: JNIEnv,
+    jclass: JClass,
+    jobject: JObject,
+) {
+    let url = env.new_string("https://tauri.app").expect("Couldn't create java string!");
+    env.call_method(jobject, "loadUrl", "(Ljava/lang/String;)V", &[url.into()]).expect("Load URL Failed!");
 }
