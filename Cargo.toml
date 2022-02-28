@@ -13,7 +13,8 @@ path = "gen/bin/desktop.rs"
 
 [dependencies]
 mobile-entry-point = "0.1.0"
-tao = { git = "https://github.com/tauri-apps/tao", branch = "next" }
+#tao = { git = "https://github.com/tauri-apps/tao", branch = "next" }
+wry = { git = "https://github.com/tauri-apps/wry", branch = "feat/android" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.9.0"

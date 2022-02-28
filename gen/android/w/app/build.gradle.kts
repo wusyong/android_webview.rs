@@ -88,6 +88,7 @@ dependencies {
     implementation("androidx.startup:startup-runtime:1.0.0")
     implementation("com.google.android.material:material:1.5.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.3")
+    implementation("androidx.webkit:webkit:1.4.0")
 }
 
 afterEvaluate {
