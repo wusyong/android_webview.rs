@@ -1,4 +1,5 @@
 use mobile_entry_point::mobile_entry_point;
+#[macro_use] extern crate log;
 // use tao::{
 //     event::{Event, WindowEvent},
 //     event_loop::{ControlFlow, EventLoop},
@@ -71,22 +72,24 @@ pub unsafe extern "C" fn Java_com_example_w_WryWebView_create(
     jclass: JClass,
     jobject: JObject,
 ) -> jobject {
+    init_logging();
     let webview = WebViewBuilder::new(Window::new()).unwrap()
-        .with_url("https://tauri.app").unwrap();
-    let url = webview.webview.url.unwrap();
-    //load_url
-    //let url = env.new_string("https://appassets.androidplatform.net/assets/index.html").expect("Couldn't create java string!");
-    let url = env.new_string(url).expect("Couldn't create java string!");
-    env.call_method(jobject, "loadUrl", "(Ljava/lang/String;)V", &[url.into()]).expect("Load URL Failed!");
+        //.with_url("https://google.com").unwrap()
+        .with_ipc_handler(|_, message| {
+            debug!("{}", message);
+        })
+        .build().unwrap();
+    debug!("111fskfkdjfksjdl");
+    webview.run(env, jclass, jobject)
+}
 
-    //init_script
-    let client = env.call_method(jobject, "getWebViewClient", "()Landroid/webkit/WebViewClient;", &[]).expect("Failed to load WebViewClient!").l().unwrap();
-    let string_class = env.find_class("java/lang/String").unwrap();
-    let scripts = env.new_object_array(1, string_class, env.new_string("").unwrap()).unwrap();
-    // for s in scripts...
-    //env.set_object_array_element(scripts, 0,
-        //env.new_string("Object.defineProperty(window, 'ipc', {value: Object.freeze(postMessage: function(x){webkit.call(x)})})").unwrap()
-        //env.new_string("window.location = \"https://www.google.com\";").unwrap()
-    //).unwrap();
-    scripts
+#[no_mangle]
+pub unsafe extern "C" fn Java_com_example_w_IpcHandler_ipc(
+    env: JNIEnv,
+    _jclass: JClass,
+    jobject: JString,
+) {
+    let window = Window::new();
+    let arg = env.get_string(jobject).unwrap().to_str().unwrap().to_string();
+    WebView::ipc_handler(&window, arg);
 }
